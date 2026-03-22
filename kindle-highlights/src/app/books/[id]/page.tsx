@@ -105,8 +105,8 @@ export default function BookDetailPage({
       </Link>
 
       {/* Book header */}
-      <div className="flex gap-6 mb-8">
-        <div className="w-32 flex-shrink-0">
+      <div className="flex gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="w-24 sm:w-32 flex-shrink-0">
           <div className="aspect-[2/3] bg-gray-200 rounded-lg overflow-hidden shadow-md relative">
             {book.coverImageUrl ? (
               <Image
@@ -114,7 +114,7 @@ export default function BookDetailPage({
                 alt={book.title}
                 fill
                 className="object-cover"
-                sizes="128px"
+                sizes="(max-width: 640px) 96px, 128px"
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center p-3 bg-gradient-to-br from-blue-100 to-blue-200">
@@ -123,9 +123,9 @@ export default function BookDetailPage({
             )}
           </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold mb-1">{book.title}</h1>
-          <p className="text-gray-600 mb-2">{book.author}</p>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold mb-1 break-words">{book.title}</h1>
+          <p className="text-gray-600 mb-2 text-sm sm:text-base">{book.author}</p>
 
           {/* Genre */}
           <div className="flex items-center gap-2 mb-2">
@@ -183,9 +183,9 @@ export default function BookDetailPage({
         {book.highlights.map((h) => (
           <div
             key={h.id}
-            className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm"
+            className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 shadow-sm"
           >
-            <blockquote className="text-gray-800 border-l-4 border-blue-400 pl-4 mb-3 leading-relaxed">
+            <blockquote className="text-gray-800 text-sm sm:text-base border-l-4 border-blue-400 pl-3 sm:pl-4 mb-3 leading-relaxed">
               {h.content}
             </blockquote>
 

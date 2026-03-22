@@ -82,9 +82,9 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">通知設定</h1>
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">通知設定</h1>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-6">
+      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-sm space-y-6">
         {/* Enable toggle */}
         <div className="flex items-center justify-between">
           <div>
@@ -174,18 +174,18 @@ export default function SettingsPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+            className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 font-medium"
           >
             {saving ? "保存中..." : "設定を保存"}
           </button>
           <button
             onClick={handleTestNotification}
             disabled={testing || !webhookUrl}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 font-medium"
+            className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 font-medium"
           >
             {testing ? "送信中..." : "テスト通知を送信"}
           </button>
