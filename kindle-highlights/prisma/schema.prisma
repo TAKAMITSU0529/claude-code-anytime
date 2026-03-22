@@ -38,6 +38,7 @@ model NotificationSetting {
   scheduleTimes  String  // JSON array string e.g. '["07:00","12:00"]'
   isEnabled      Boolean @default(true)
   highlightCount Int     @default(3)
+  amazonCookie   String? // Amazon session cookie for Kindle sync
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

@@ -20,23 +20,26 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   let setting = await prisma.notificationSetting.findFirst();
 
+  const data: Record<string, unknown> = {};
+  if (body.webhookUrl !== undefined) data.webhookUrl = body.webhookUrl;
+  if (body.scheduleTimes !== undefined) data.scheduleTimes = JSON.stringify(body.scheduleTimes);
+  if (body.isEnabled !== undefined) data.isEnabled = body.isEnabled;
+  if (body.highlightCount !== undefined) data.highlightCount = body.highlightCount;
+  if (body.amazonCookie !== undefined) data.amazonCookie = body.amazonCookie;
+
   if (setting) {
     setting = await prisma.notificationSetting.update({
       where: { id: setting.id },
-      data: {
-        webhookUrl: body.webhookUrl,
-        scheduleTimes: JSON.stringify(body.scheduleTimes),
-        isEnabled: body.isEnabled,
-        highlightCount: body.highlightCount,
-      },
+      data,
     });
   } else {
     setting = await prisma.notificationSetting.create({
       data: {
-        webhookUrl: body.webhookUrl,
-        scheduleTimes: JSON.stringify(body.scheduleTimes),
-        isEnabled: body.isEnabled,
-        highlightCount: body.highlightCount,
+        webhookUrl: body.webhookUrl ?? "",
+        scheduleTimes: JSON.stringify(body.scheduleTimes ?? ["07:00"]),
+        isEnabled: body.isEnabled ?? false,
+        highlightCount: body.highlightCount ?? 3,
+        amazonCookie: body.amazonCookie ?? null,
       },
     });
   }

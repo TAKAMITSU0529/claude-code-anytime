@@ -1,26 +1,59 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-type ImportMode = "easy" | "file";
+type ImportMode = "sync" | "easy" | "file";
 
 export default function ImportPage() {
-  const [mode, setMode] = useState<ImportMode>("easy");
+  const [mode, setMode] = useState<ImportMode>("sync");
   const [file, setFile] = useState<File | null>(null);
   const [pasteText, setPasteText] = useState("");
   const [bookTitle, setBookTitle] = useState("");
   const [bookAuthor, setBookAuthor] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [hasCookie, setHasCookie] = useState<boolean | null>(null);
   const [result, setResult] = useState<{
     message: string;
     importedBooks: number;
     importedHighlights: number;
+    totalBooks?: number;
+    skippedHighlights?: number;
   } | null>(null);
   const [error, setError] = useState("");
   const [step, setStep] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Check if Amazon cookie is set
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        setHasCookie(!!data.amazonCookie);
+      })
+      .catch(() => setHasCookie(false));
+  }, []);
+
+  async function handleSync() {
+    setUploading(true);
+    setError("");
+    setResult(null);
+
+    try {
+      const res = await fetch("/api/sync", { method: "POST" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "同期に失敗しました");
+      } else {
+        setResult(data);
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+    }
+    setUploading(false);
+  }
 
   async function handleFileUpload() {
     if (!file) return;
@@ -81,33 +114,126 @@ export default function ImportPage() {
     if (f) setFile(f);
   }
 
+  function resetState() {
+    setResult(null);
+    setPasteText("");
+    setBookTitle("");
+    setBookAuthor("");
+    setStep(1);
+    setError("");
+    setFile(null);
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       {/* Mode tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => { setMode("easy"); setResult(null); setError(""); }}
-          className={`flex-1 py-3 rounded-xl font-bold text-base transition-colors ${
-            mode === "easy"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          スマホで簡単
-        </button>
-        <button
-          onClick={() => { setMode("file"); setResult(null); setError(""); }}
-          className={`flex-1 py-3 rounded-xl font-bold text-base transition-colors ${
-            mode === "file"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          ファイルから
-        </button>
+      <div className="flex gap-1.5 mb-6">
+        {([
+          { key: "sync" as const, label: "Kindle同期" },
+          { key: "easy" as const, label: "コピペ" },
+          { key: "file" as const, label: "ファイル" },
+        ]).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => { setMode(key); resetState(); }}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm sm:text-base transition-colors ${
+              mode === key
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Easy mode - step by step */}
+      {/* ===== Sync Mode ===== */}
+      {mode === "sync" && !result && (
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-sm">
+          <h2 className="text-lg font-bold mb-2">Kindleハイライトを自動同期</h2>
+          <p className="text-sm text-gray-600 mb-6">
+            ボタンを押すだけで、Kindleでハイライトした全ての本とマーカーを
+            自動的に取り込みます。
+          </p>
+
+          {hasCookie === null && (
+            <div className="text-center py-8 text-gray-400">確認中...</div>
+          )}
+
+          {hasCookie === true && (
+            <div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-green-600 text-lg">✓</span>
+                  <span className="font-medium text-green-800">
+                    Amazon連携済み
+                  </span>
+                </div>
+                <p className="text-sm text-green-700">
+                  同期の準備ができています。
+                </p>
+              </div>
+              <button
+                onClick={handleSync}
+                disabled={uploading}
+                className="w-full py-4 bg-orange-500 text-white rounded-xl font-bold text-lg hover:bg-orange-600 active:bg-orange-700 disabled:opacity-50 shadow-md transition-colors"
+              >
+                {uploading ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <svg
+                      className="animate-spin h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
+                    </svg>
+                    Amazonから取得中...
+                  </span>
+                ) : (
+                  "Kindleと同期する"
+                )}
+              </button>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                既に取り込み済みのハイライトはスキップされます
+              </p>
+            </div>
+          )}
+
+          {hasCookie === false && (
+            <div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="font-medium text-yellow-800 mb-1">
+                  初回セットアップが必要です
+                </p>
+                <p className="text-sm text-yellow-700">
+                  設定ページでAmazon Cookieを登録してください。
+                  一度登録すれば、以降はボタン1つで同期できます。
+                </p>
+              </div>
+              <a
+                href="/settings"
+                className="block w-full py-3 bg-blue-600 text-white rounded-lg text-center font-bold hover:bg-blue-700 active:bg-blue-800"
+              >
+                設定ページへ
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===== Easy (paste) mode ===== */}
       {mode === "easy" && !result && (
         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-sm">
           {/* Step indicator */}
@@ -132,7 +258,6 @@ export default function ImportPage() {
             ))}
           </div>
 
-          {/* Step 1: Go to Amazon */}
           {step === 1 && (
             <div>
               <h2 className="text-lg font-bold mb-3">
@@ -170,7 +295,6 @@ export default function ImportPage() {
             </div>
           )}
 
-          {/* Step 2: Book info + paste */}
           {step === 2 && (
             <div>
               <h2 className="text-lg font-bold mb-3">
@@ -245,7 +369,6 @@ export default function ImportPage() {
             </div>
           )}
 
-          {/* Step 3: Confirm */}
           {step === 3 && (
             <div>
               <h2 className="text-lg font-bold mb-3">確認してインポート</h2>
@@ -298,7 +421,7 @@ export default function ImportPage() {
         </div>
       )}
 
-      {/* File mode */}
+      {/* ===== File mode ===== */}
       {mode === "file" && !result && (
         <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-8 shadow-sm">
           <div className="mb-4 text-sm text-gray-600 space-y-2">
@@ -361,6 +484,14 @@ export default function ImportPage() {
       {error && (
         <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
           {error}
+          {error.includes("Cookie") && (
+            <a
+              href="/settings"
+              className="block mt-2 text-blue-600 underline font-medium"
+            >
+              設定ページでCookieを更新する →
+            </a>
+          )}
         </div>
       )}
 
@@ -368,11 +499,19 @@ export default function ImportPage() {
       {result && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6">
           <h3 className="text-green-800 font-bold text-lg mb-2">
-            インポート完了！
+            {mode === "sync" ? "同期完了！" : "インポート完了！"}
           </h3>
           <ul className="text-green-700 space-y-1 text-sm">
+            {result.totalBooks !== undefined && (
+              <li>検出された書籍: {result.totalBooks} 冊</li>
+            )}
             <li>新規書籍: {result.importedBooks} 冊</li>
             <li>新規ハイライト: {result.importedHighlights} 件</li>
+            {result.skippedHighlights !== undefined && result.skippedHighlights > 0 && (
+              <li className="text-green-600">
+                既存（スキップ）: {result.skippedHighlights} 件
+              </li>
+            )}
           </ul>
           <div className="flex gap-3 mt-4">
             <button
@@ -382,14 +521,7 @@ export default function ImportPage() {
               本棚を見る
             </button>
             <button
-              onClick={() => {
-                setResult(null);
-                setPasteText("");
-                setBookTitle("");
-                setBookAuthor("");
-                setStep(1);
-                setMode("easy");
-              }}
+              onClick={resetState}
               className="flex-1 px-4 py-3 border border-green-600 text-green-700 rounded-lg hover:bg-green-50 font-medium"
             >
               続けて追加
