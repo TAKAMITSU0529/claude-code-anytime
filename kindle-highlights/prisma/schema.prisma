@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id            String      @id @default(uuid())
+  title         String
+  author        String
+  coverImageUrl String?
+  genre         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  highlights    Highlight[]
+}
+
+model Highlight {
+  id            String   @id @default(uuid())
+  bookId        String
+  content       String
+  summary       String?
+  location      String?
+  highlightedAt DateTime?
+  memo          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  book          Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model NotificationSetting {
+  id             String  @id @default(uuid())
+  webhookUrl     String
+  scheduleTimes  String  // JSON array string e.g. '["07:00","12:00"]'
+  isEnabled      Boolean @default(true)
+  highlightCount Int     @default(3)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
