@@ -1,0 +1,32 @@
+{
+  "name": "food-truck-dashboard",
+  "version": "1.0.0",
+  "description": "キッチンカー売上報告ダッシュボード（お結び屋 日本の心）",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && prisma db push && next build",
+    "start": "next start",
+    "postinstall": "prisma generate",
+    "seed": "node prisma/seed.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
+    "@prisma/client": "^6.19.2",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@vercel/blob": "^0.27.3",
+    "googleapis": "^144.0.0",
+    "next": "^16.2.1",
+    "prisma": "^6.19.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^2.15.4",
+    "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "postcss": "^8.5.8",
+    "typescript": "^5.9.3"
+  }
+}

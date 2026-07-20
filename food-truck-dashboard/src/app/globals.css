@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-page: #f9f7f2;
+  --color-surface: #ffffff;
+  --color-ink: #1c1917;
+  --color-ink-2: #57534e;
+  --color-ink-3: #8d8781;
+  --color-line: #e7e2d9;
+  --color-accent: #b8441f; /* 朱色（お結び屋の暖色アクセント） */
+  --color-accent-soft: #fbeee8;
+  --color-good: #0ca30c;
+  --color-series-1: #2a78d6;
+  --color-series-2: #008300;
+  --color-series-3: #e87ba4;
+  --color-series-4: #eda100;
+  --color-series-5: #1baf7a;
+  --color-series-6: #eb6834;
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans",
+    "Noto Sans JP", sans-serif;
+}
+
+html {
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}

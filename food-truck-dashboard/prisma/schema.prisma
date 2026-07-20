@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model EventReport {
+  id                 String    @id @default(uuid())
+  date               DateTime  @db.Date
+  eventName          String
+  weather            String?
+  staff              String[]  @default([])
+  // 元金（金種→枚数のJSON。例 {"10000":0,"5000":0,"1000":20,...}）
+  genkinBreakdown    Json?
+  genkinTotal        Int       @default(0)
+  // 閉店時の現金カウント（金種→枚数）
+  salesCashBreakdown Json?
+  salesCashTotal     Int       @default(0)
+  paypayAmount       Int       @default(0)
+  // レジレシートの参考値
+  registerGross      Int?
+  registerNet        Int?
+  stallFee           Int       @default(0)
+  // 現金売上 = salesCashTotal - genkinTotal
+  cashSales          Int       @default(0)
+  // 本日の売上 = 現金売上 + PayPay
+  totalSales         Int       @default(0)
+  // 手残り = 本日の売上 - 出店料
+  netProfit          Int       @default(0)
+  kanso              String?
+  hansei             String?
+  kaizen             String?
+  shortages          String?
+  status             String    @default("draft")
+  sheetSyncedAt      DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  prepItems     PrepItem[]
+  productSales  ProductSale[]
+  hourlySales   HourlySale[]
+  receiptImages ReceiptImage[]
+}
+
+model PrepItem {
+  id          String      @id @default(uuid())
+  reportId    String
+  name        String
+  unit        String      @default("個")
+  qtyTaken    Float       @default(0)
+  qtyReturned Float       @default(0)
+  sortOrder   Int         @default(0)
+  report      EventReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model ProductSale {
+  id          String      @id @default(uuid())
+  reportId    String
+  productName String
+  quantity    Int         @default(0)
+  amount      Int         @default(0)
+  sortOrder   Int         @default(0)
+  report      EventReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model HourlySale {
+  id        String      @id @default(uuid())
+  reportId  String
+  hourStart String
+  count     Int         @default(0)
+  amount    Int         @default(0)
+  report    EventReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
+
+model ReceiptImage {
+  id        String      @id @default(uuid())
+  reportId  String
+  kind      String      @default("other")
+  url       String
+  createdAt DateTime    @default(now())
+  report    EventReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+}
