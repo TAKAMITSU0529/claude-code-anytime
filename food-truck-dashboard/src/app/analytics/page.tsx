@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function AnalyticsPage() {
   const reports = await prisma.eventReport.findMany({
     orderBy: { date: "asc" },
-    include: { productSales: true, hourlySales: true },
+    include: { productSales: true, hourlySales: true, competitors: true },
   });
 
   if (reports.length === 0) {
@@ -83,6 +83,39 @@ export default async function AnalyticsPage() {
     avg: Math.round(v.total / v.n),
     n: v.n,
   }));
+
+  // よく一緒になる競合（店名で集計）
+  const byCompetitor = new Map<
+    string,
+    { n: number; genre: string | null; lastEvent: string; lastDate: Date }
+  >();
+  for (const r of reports) {
+    for (const c of r.competitors) {
+      const cur = byCompetitor.get(c.name);
+      byCompetitor.set(c.name, {
+        n: (cur?.n || 0) + 1,
+        genre: c.genre || cur?.genre || null,
+        lastEvent: r.eventName,
+        lastDate: r.date,
+      });
+    }
+  }
+  const topCompetitors = Array.from(byCompetitor.entries())
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 5);
+
+  // ジャンル別の遭遇回数
+  const byGenre = new Map<string, number>();
+  for (const r of reports) {
+    for (const c of r.competitors) {
+      if (!c.genre) continue;
+      byGenre.set(c.genre, (byGenre.get(c.genre) || 0) + 1);
+    }
+  }
+  const genres = Array.from(byGenre.entries())
+    .map(([genre, n]) => ({ genre, n }))
+    .sort((a, b) => b.n - a.n);
 
   const grandTotal = reports.reduce((s, r) => s + r.totalSales, 0);
 
@@ -164,6 +197,52 @@ export default async function AnalyticsPage() {
           ))}
         </ol>
       </div>
+
+      {topCompetitors.length > 0 && (
+        <div className="card p-4">
+          <h2 className="font-bold">よく一緒になる競合 TOP5</h2>
+          <ol className="mt-2 space-y-2">
+            {topCompetitors.map((c, i) => (
+              <li key={c.name} className="flex items-center gap-3">
+                <span className="w-6 text-center font-bold text-ink-3">
+                  {i + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold">
+                    {c.name}
+                    {c.genre && (
+                      <span className="ml-2 rounded-full bg-page px-2 py-0.5 text-xs font-normal text-ink-2">
+                        {c.genre}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-xs text-ink-3 tnum">
+                    最近: {formatDateJa(c.lastDate)} {c.lastEvent}
+                  </span>
+                </span>
+                <span className="font-bold tnum">{c.n}回</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {genres.length > 0 && (
+        <div className="card p-4">
+          <h2 className="font-bold">ジャンル別 遭遇回数</h2>
+          <p className="text-xs text-ink-3">どんな競合と当たりやすいか</p>
+          <table className="mt-2 w-full text-sm">
+            <tbody>
+              {genres.map((g) => (
+                <tr key={g.genre} className="border-b border-line last:border-0">
+                  <td className="py-1.5">{g.genre}</td>
+                  <td className="py-1.5 text-right font-bold tnum">{g.n}回</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {weatherAvg.length > 0 && (
         <div className="card p-4">

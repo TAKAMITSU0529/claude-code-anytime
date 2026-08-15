@@ -46,9 +46,17 @@ export default async function ReportDetailPage({
       productSales: { orderBy: { quantity: "desc" } },
       hourlySales: { orderBy: { hourStart: "asc" } },
       receiptImages: true,
+      competitors: { orderBy: { sortOrder: "asc" } },
     },
   });
   if (!report) notFound();
+
+  const receiptPhotos = report.receiptImages.filter(
+    (r) => r.kind !== "competitor"
+  );
+  const competitorPhotos = report.receiptImages.filter(
+    (r) => r.kind === "competitor"
+  );
 
   return (
     <div className="space-y-4">
@@ -234,12 +242,84 @@ export default async function ReportDetailPage({
         </div>
       )}
 
+      {/* 競合キッチンカー */}
+      {(report.competitors.length > 0 || competitorPhotos.length > 0) && (
+        <div className="card p-4">
+          <h2 className="font-bold">
+            この日の競合{" "}
+            <span className="text-sm font-normal text-ink-3 tnum">
+              {report.competitors.length}店
+            </span>
+          </h2>
+          <ul className="mt-2 space-y-2">
+            {report.competitors.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-start gap-3 rounded-xl border border-line p-3"
+              >
+                {c.photoUrl && (
+                  <a href={c.photoUrl} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={c.photoUrl}
+                      alt={c.name}
+                      className="h-16 w-16 shrink-0 rounded-lg border border-line object-cover"
+                    />
+                  </a>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold">{c.name}</span>
+                    {c.genre && (
+                      <span className="rounded-full bg-page px-2 py-0.5 text-xs text-ink-2">
+                        {c.genre}
+                      </span>
+                    )}
+                    {c.crowdLevel && (
+                      <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent">
+                        {c.crowdLevel}
+                      </span>
+                    )}
+                  </div>
+                  {(c.mainProduct || c.price) && (
+                    <p className="mt-0.5 text-sm text-ink-2 tnum">
+                      {c.mainProduct}
+                      {c.price ? ` ${yen(c.price)}` : ""}
+                    </p>
+                  )}
+                  {c.memo && (
+                    <p className="mt-0.5 text-xs text-ink-3">{c.memo}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+          {competitorPhotos.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-ink-3">競合の写真</p>
+              <div className="mt-1 grid grid-cols-3 gap-2">
+                {competitorPhotos.map((img) => (
+                  <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.url}
+                      alt="競合の写真"
+                      className="h-24 w-full rounded-lg border border-line object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* レシート写真 */}
-      {report.receiptImages.length > 0 && (
+      {receiptPhotos.length > 0 && (
         <div className="card p-4">
           <h2 className="font-bold">レシート</h2>
           <div className="mt-2 grid grid-cols-3 gap-2">
-            {report.receiptImages.map((img) => (
+            {receiptPhotos.map((img) => (
               <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

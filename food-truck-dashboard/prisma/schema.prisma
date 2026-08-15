@@ -44,6 +44,22 @@ model EventReport {
   productSales  ProductSale[]
   hourlySales   HourlySale[]
   receiptImages ReceiptImage[]
+  competitors   Competitor[]
+}
+
+// 同じイベントに出ていた他社キッチンカー
+model Competitor {
+  id          String      @id @default(uuid())
+  reportId    String
+  name        String
+  genre       String?
+  mainProduct String?
+  price       Int?
+  crowdLevel  String?
+  memo        String?
+  photoUrl    String?
+  sortOrder   Int         @default(0)
+  report      EventReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 }
 
 model PrepItem {

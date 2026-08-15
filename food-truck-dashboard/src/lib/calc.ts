@@ -41,6 +41,9 @@ export function formatDateJa(date: Date | string): string {
 
 export const WEATHER_OPTIONS = ["晴れ", "曇り", "雨", "晴れ時々曇り", "猛暑", "雪"];
 
+// 競合の混雑度（OCRの enum と揃える）
+export const CROWD_LEVELS = ["空いてる", "ふつう", "混雑", "行列"];
+
 // よく使う仕込み品目（フォームの初期行）
 export const DEFAULT_PREP_ITEMS = [
   { name: "肉巻きおむすび", unit: "個" },

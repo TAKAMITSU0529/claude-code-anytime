@@ -13,6 +13,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
       productSales: { orderBy: { sortOrder: "asc" } },
       hourlySales: { orderBy: { hourStart: "asc" } },
       receiptImages: true,
+      competitors: { orderBy: { sortOrder: "asc" } },
     },
   });
   if (!report) {
@@ -33,6 +34,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     await tx.productSale.deleteMany({ where: { reportId: id } });
     await tx.hourlySale.deleteMany({ where: { reportId: id } });
     await tx.receiptImage.deleteMany({ where: { reportId: id } });
+    await tx.competitor.deleteMany({ where: { reportId: id } });
     return tx.eventReport.update({
       where: { id },
       data: { ...toReportData(input), ...nestedCreates(input) },
@@ -41,6 +43,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
         productSales: true,
         hourlySales: true,
         receiptImages: true,
+        competitors: true,
       },
     });
   });

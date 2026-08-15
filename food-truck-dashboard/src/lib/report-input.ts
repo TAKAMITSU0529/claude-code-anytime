@@ -24,6 +24,15 @@ export type ReportInput = {
   productSales?: { productName: string; quantity: number; amount: number }[];
   hourlySales?: { hourStart: string; count: number; amount: number }[];
   receiptImages?: { kind: string; url: string }[];
+  competitors?: {
+    name: string;
+    genre?: string | null;
+    mainProduct?: string | null;
+    price?: number | null;
+    crowdLevel?: string | null;
+    memo?: string | null;
+    photoUrl?: string | null;
+  }[];
 };
 
 export function toReportData(input: ReportInput) {
@@ -87,6 +96,20 @@ export function nestedCreates(input: ReportInput) {
       create: (input.receiptImages || [])
         .filter((r) => r.url)
         .map((r) => ({ kind: r.kind || "other", url: r.url })),
+    },
+    competitors: {
+      create: (input.competitors || [])
+        .filter((c) => c.name?.trim())
+        .map((c, i) => ({
+          name: c.name.trim(),
+          genre: c.genre?.trim() || null,
+          mainProduct: c.mainProduct?.trim() || null,
+          price: c.price ? Number(c.price) : null,
+          crowdLevel: c.crowdLevel?.trim() || null,
+          memo: c.memo?.trim() || null,
+          photoUrl: c.photoUrl || null,
+          sortOrder: i,
+        })),
     },
   };
 }

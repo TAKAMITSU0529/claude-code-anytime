@@ -18,6 +18,7 @@ export default async function EditReportPage({
       productSales: { orderBy: { sortOrder: "asc" } },
       hourlySales: { orderBy: { hourStart: "asc" } },
       receiptImages: true,
+      competitors: { orderBy: { sortOrder: "asc" } },
     },
   });
   if (!report) notFound();
@@ -61,6 +62,15 @@ export default async function EditReportPage({
           receiptImages: report.receiptImages.map((r) => ({
             kind: r.kind,
             url: r.url,
+          })),
+          competitors: report.competitors.map((c) => ({
+            name: c.name,
+            genre: c.genre,
+            mainProduct: c.mainProduct,
+            price: c.price,
+            crowdLevel: c.crowdLevel,
+            memo: c.memo,
+            photoUrl: c.photoUrl,
           })),
         }}
       />

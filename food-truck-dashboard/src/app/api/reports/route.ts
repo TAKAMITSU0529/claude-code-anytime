@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       productSales: true,
       hourlySales: true,
       receiptImages: true,
+      competitors: true,
     },
   });
   return NextResponse.json(report, { status: 201 });
